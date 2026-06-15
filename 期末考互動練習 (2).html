@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期末考互動練習</title>
+<style>
+  :root {
+    --ink: #1f2430;
+    --paper: #faf8f3;
+    --card: #ffffff;
+    --accent: #2e6f6e;
+    --accent-soft: #e6f1f0;
+    --wrong: #c0524a;
+    --wrong-soft: #fbe9e7;
+    --correct: #2e7d4f;
+    --correct-soft: #e6f5ec;
+    --line: #e3ddd0;
+    --muted: #8a8478;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    padding-bottom: 60px;
+  }
+  header {
+    padding: 28px 20px 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    background: var(--card);
+  }
+  header h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  header p {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  /* Chapter select screen */
+  .chapter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  @media (max-width: 480px) {
+    .chapter-grid { grid-template-columns: 1fr; }
+  }
+  .chapter-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+    text-align: left;
+  }
+  .chapter-card:active { transform: scale(0.98); }
+  .chapter-card:hover { border-color: var(--accent); }
+  .chapter-card .ch-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+  }
+  .chapter-card .ch-count {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .chapter-card .ch-best {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Quiz screen */
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .back-btn {
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .progress-text {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .progress-bar {
+    height: 6px;
+    background: var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.25s ease;
+  }
+
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .q-label {
+    font-size: 0.78rem;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .q-text {
+    font-size: 1.05rem;
+    font-weight: 600;
+    white-space: pre-wrap;
+    margin-bottom: 16px;
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+    background: var(--card);
+    text-align: left;
+  }
+  .option:hover { border-color: var(--accent); }
+  .option .letter {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .option .text { padding-top: 2px; font-size: 0.97rem; }
+
+  .option.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .option.selected .letter {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--card);
+  }
+
+  .option.correct {
+    border-color: var(--correct);
+    background: var(--correct-soft);
+  }
+  .option.correct .letter {
+    border-color: var(--correct);
+    color: var(--correct);
+    background: var(--card);
+  }
+  .option.incorrect {
+    border-color: var(--wrong);
+    background: var(--wrong-soft);
+  }
+  .option.incorrect .letter {
+    border-color: var(--wrong);
+    color: var(--wrong);
+    background: var(--card);
+  }
+  .option.disabled { cursor: default; }
+
+  .hint {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+
+  .feedback {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .feedback.correct {
+    background: var(--correct-soft);
+    color: var(--correct);
+  }
+  .feedback.incorrect {
+    background: var(--wrong-soft);
+    color: var(--wrong);
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .btn {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.12s;
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-secondary {
+    background: var(--card);
+    color: var(--ink);
+    border: 1.5px solid var(--line);
+  }
+
+  /* Result screen */
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+  }
+  .result-score {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin: 8px 0;
+  }
+  .result-sub {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+  .review-list {
+    text-align: left;
+    margin-top: 24px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+  }
+  .review-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.88rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .review-item:last-child { border-bottom: none; }
+  .review-item .rq {
+    flex: 1;
+    white-space: pre-wrap;
+  }
+  .review-item .rmark {
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+  .review-item .rmark.ok { color: var(--correct); }
+  .review-item .rmark.bad { color: var(--wrong); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 期末考互動練習</h1>
+  <p>選擇章節開始練習，選項每次隨機打亂</p>
+</header>
+
+<div class="container">
+
+  <!-- Chapter selection -->
+  <div id="screen-select">
+    <div class="chapter-grid" id="chapter-grid"></div>
+  </div>
+
+  <!-- Quiz -->
+  <div id="screen-quiz" class="hidden">
+    <div class="quiz-header">
+      <button class="back-btn" id="btn-back">← 返回章節</button>
+      <div class="progress-text" id="progress-text"></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+    <div class="question-card">
+      <div class="q-label" id="q-label"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="hint" id="q-hint"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback hidden" id="feedback"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" id="btn-skip">跳過</button>
+      <button class="btn btn-primary" id="btn-submit" disabled>提交答案</button>
+      <button class="btn btn-primary hidden" id="btn-next">下一題 →</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="screen-result" class="hidden">
+    <div class="result-card">
+      <div style="font-size:0.95rem; color:var(--muted);">本章成績</div>
+      <div class="result-score" id="result-score"></div>
+      <div class="result-sub" id="result-sub"></div>
+      <div class="actions">
+        <button class="btn btn-secondary" id="btn-retry">重新作答</button>
+        <button class="btn btn-primary" id="btn-home">返回章節</button>
+      </div>
+      <div class="review-list" id="review-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DATA = {"ch7_10":{"label":"CH7 課後十題","items":[{"q":"1. 系統設計工作，包含以下哪些？\n(1)架構設計 (2)程式功能設計 (3)介面設計 (4)資料庫設計 (5)安全性設計","opts":{"A":"1234","B":"12345","C":"1235","D":"1345"},"ans":"B"},{"q":"2. 從分析到設計的順序\n(1)使用案例、系統循序圖 (2)設計類別圖 (3)循序圖 (4)合約或虛擬碼","opts":{"A":"1234","B":"1243","C":"1324","D":"1423"},"ans":"C"},{"q":"3. 循序圖五個基本符號，以下何者為真？\n(1)物件 (2)物件生命線 (3)長條格 (4)操作呼叫的實體箭號線 (5)回覆訊息的虛線箭號","opts":{"A":"123","B":"1234","C":"12345","D":"12"},"ans":"C"},{"q":"4. 以下何者為真？","opts":{"A":"系統設計是描述系統需要的是什麼，系統分析是描述系統要如何完成這⼯作","B":"系統分析是描述系統需要的是類別，系統設計是描述系統要如何完成這⼯作","C":"系統分析是描述系統需要的是什麼，系統設計是描述系統要如何完成這程式","D":"系統分析是描述系統需要的是什麼，系統設計是描述系統要如何完成這⼯作"},"ans":"D"},{"q":"5. 物件導向設計程序的次序為？\n(1)明確說明每一方法之標示符號與演算法 (2)以個別使用案例為主設計出互動圖 (3)重新調整類別圖 (4)定義展現層和資料存取層 (5)描繪設計類別圖","opts":{"A":"52143","B":"25143","C":"25341","D":"25314"},"ans":"D"},{"q":"6. 建立循序圖步驟，為何者？\n(1)重複以上步驟，直到完成所有系統操作 (2)決定完成此系統操作的所有訊息傳遞，並決定每一個訊息傳遞由哪一個物件發出，又由哪一個物件接受來執行此操作 (3)選定一個系統操作，判斷需要哪些物件來完成系統操作，並將物件置於循序圖頂端 (4)加入展現層之物件與資料存取層之物件","opts":{"A":"3214","B":"3241","C":"2314","D":"4321"},"ans":"A"},{"q":"7. 以下敘述何者正確？","opts":{"A":"設計時，要設計出⾼內聚⼒與⾼耦合⼒的模組或是類別","B":"設計時，要設計出低內聚⼒與低耦合⼒的模組或是類別","C":"設計時，要設計出⾼內聚⼒與低耦合⼒的模組或是類別","D":"設計時，要設計出低內聚⼒與⾼耦合⼒的模組或是類別"},"ans":"C"},{"q":"8. 以下敘述何者為真？\n(1)訊息回覆的表示方式 returnValue=message(parameter)\n(2)呼叫自己本身之物件表示方式可以使用巢狀執行規格長條格\n(3)消除實力在 UML 中用 destroy，並使用模板樣式 <<>> 表示\n(4)溝通圖使用連結與操作來表現物件間的互動，連結使用一條實體連線條連接兩個物件。","opts":{"A":"1234","B":"234","C":"123","D":"124"},"ans":"A"},{"q":"9. 圖形框架，包含下列哪幾項？\n(1)迴路 (2)條件 (3)巢狀框架","opts":{"A":"12","B":"13","C":"23","D":"123"},"ans":"D"},{"q":"10. 在 UML 中有幾種互動圖，分別為何？","opts":{"A":"類別圖和溝通圖","B":"循序圖和溝通圖","C":"循序圖和類別圖","D":"溝通圖和使用案例圖"},"ans":"B"}]},"ch7_30":{"label":"CH7 課後30題","items":[{"q":"1. 關於軟體設計中的「內聚力」(Cohesion)，下列敘述哪些是正確的？","opts":{"A":"衡量一個模組內部各個元素彼此結合的緊密程度","B":"設計目標應追求「低內聚力」","C":"高內聚力通常代表該模組只負責單一、明確的功能","D":"內聚力越高，模組的可重用性通常越低"},"ans":"AC"},{"q":"2. 關於「耦合力」(Coupling) 的概念，下列哪些敘述正確？","opts":{"A":"衡量不同模組之間相互依賴的程度","B":"設計目標應追求「高耦合力」","C":"低耦合力代表修改一個模組時，較不會影響到其他模組","D":"耦合力過高會導致系統難以維護與測試"},"ans":"ACD"},{"q":"3. 下列哪些圖表屬於 UML 中的「互動圖」(Interaction Diagram)？","opts":{"A":"類別圖 (Class Diagram)","B":"順序圖 (Sequence Diagram)","C":"通訊圖 (Communication Diagram)","D":"使用案例圖 (Use Case Diagram)"},"ans":"BC"},{"q":"4. 在順序圖中，關於「生命線方格」(Lifeline Box) 的敘述，哪些正確？","opts":{"A":"代表參與互動的物件或實例","B":"垂直虛線代表時間的流逝，通常由上往下","C":"矩形方格內的文字通常標示物件名稱與類別","D":"生命線一旦結束，該物件就永久存在於資料庫中"},"ans":"ABC"},{"q":"5. 關於物件導向中的「實例」(Instance)，下列哪些說法正確？","opts":{"A":"是類別 (Class) 的具體化產物","B":"一個類別只能產生一個實例","C":"實例擁有具體的屬性值 (State)","D":"在記憶體中佔有實際空間"},"ans":"ACD"},{"q":"6. 關於類別中的「建構者」(Constructor)，下列特徵哪些正確？","opts":{"A":"通常與類別名稱相同","B":"主要用途是初始化物件的狀態","C":"必須有回傳值 (Return Value)","D":"在建立新實例 (new) 時會被呼叫"},"ans":"ABD"},{"q":"7. 在 UML 順序圖中，關於「迴路」(Loop) 的表示與用途，哪些正確？","opts":{"A":"使用 Combined Fragment (組合片段) 來表示","B":"標籤通常標記為 alt","C":"用於表示重複執行的互動訊息","D":"通常包含一個布林條件，決定迴圈是否繼續"},"ans":"ACD"},{"q":"8. 在 UML 互動圖中，關於「條件」(Condition) 的處理，下列哪些正確？","opts":{"A":"可使用 alt 片段表示互斥的條件分支 (if-else)","B":"可使用 opt 片段表示單一選擇的條件 (if)","C":"條件判斷式通常寫在方括號 [ ] 中","D":"條件必須由使用者手動輸入，系統無法自動判斷"},"ans":"ABC"},{"q":"9. 關於「巢狀框架」(Nested Frame) 在 UML 中的應用，哪些敘述正確？","opts":{"A":"指在一個組合片段中包含另一個組合片段","B":"可用來表達複雜的邏輯，例如迴圈中有條件判斷","C":"會降低圖表的閱讀複雜度，建議無限層套用","D":"常見於 loop 內包覆 alt 或 opt 的情境"},"ans":"ABD"},{"q":"10. 關於「模式-展現-控制」(MVC) 架構，下列敘述哪些正確？","opts":{"A":"Model (模式) 負責處理資料邏輯與商業規則","B":"View (展現) 負責處理使用者介面與顯示","C":"Controller (控制) 負責接收使用者輸入並協調 Model 與 View","D":"View 可以直接修改 Model 的資料，不需透過 Controller"},"ans":"ABC"},{"q":"11. 系統設計中的「架構設計」(Architecture Design) 包含下列哪些工作內容？","opts":{"A":"定義系統的高層次結構","B":"決定軟硬體環境配置","C":"設計每一個按鈕的顏色與大小","D":"劃分子系統與模組間的溝通介面"},"ans":"ABD"},{"q":"12. 「程式功能設計」的主要目標包含哪些？","opts":{"A":"將系統需求轉換為具體的程式邏輯","B":"撰寫詳細的演算法或虛擬碼","C":"定義資料庫的資料表欄位","D":"規劃模組內部的運作流程"},"ans":"ABD"},{"q":"13. 「介面設計」(Interface Design) 的範疇通常包含哪些？","opts":{"A":"使用者介面 (UI) 的佈局與美觀","B":"系統與外部系統的資料交換格式","C":"資料庫的正規化過程","D":"使用者體驗 (UX) 與操作流程"},"ans":"ABD"},{"q":"14. 「資料庫設計」(Database Design) 通常涉及哪些活動？","opts":{"A":"設計 E-R Model (實體關聯圖)","B":"定義資料表 (Table) 與主鍵 (Primary Key)","C":"防止 SQL Injection 攻擊的程式碼撰寫","D":"決定資料的儲存格式與關聯性"},"ans":"ABD"},{"q":"15. 「安全性設計」(Security Design) 應考慮下列哪些面向？","opts":{"A":"使用者的權限管理與存取控制","B":"資料傳輸的加密機制","C":"系統的回應速度優化","D":"防範惡意攻擊與漏洞修補"},"ans":"ABD"},{"q":"16. 關於「模式-外觀分隔原理」(Model-View Separation Principle)，下列哪些是其核心概念？","opts":{"A":"商業邏輯 (Domain Logic) 應與介面顯示 (UI) 分離","B":"介面物件不應直接含有商業規則","C":"外觀 (View) 的改變不應影響到模式 (Model) 的核心邏輯","D":"模式 (Model) 應該要直接呼叫 外觀 (View) 的函式來更新畫面"},"ans":"ABC"},{"q":"17. 採用「模式-外觀分隔原理」的好處包含哪些？","opts":{"A":"可以針對同一個 Model 設計多種不同的 View","B":"修改介面時，不需要修改商業邏輯程式碼","C":"提高商業邏輯模組的可測試性","D":"程式碼會變得更短且完全不需要註解"},"ans":"ABC"},{"q":"18. 「物件導向設計程序」(OOD Process) 通常接在哪些階段之後？","opts":{"A":"系統分析 (System Analysis)","B":"需求獲取 (Requirements Elicitation)","C":"系統維護 (System Maintenance)","D":"系統除役 (System Retirement)"},"ans":"AB"},{"q":"19. 在物件導向設計程序中，通常會進行下列哪些活動？","opts":{"A":"將分析類別 (Analysis Class) 精煉為設計類別 (Design Class)","B":"加入具體的實作細節，如資料型態與可視性 (Visibility)","C":"定義物件之間的互動訊息與責任分配","D":"實際採購硬體設備"},"ans":"ABC"},{"q":"20. 關於系統分析與系統設計的區別，下列哪些敘述正確？","opts":{"A":"分析強調「做什麼」(What)，設計強調「如何做」(How)","B":"分析階段產出需求規格，設計階段產出藍圖與架構","C":"分析階段通常不涉及具體程式語言的特性","D":"設計階段需考慮特定技術平台的限制"},"ans":"ABCD"},{"q":"21. 下列哪些是 UML 順序圖中用來控制流程的 Combined Fragments？","opts":{"A":"loop (迴圈)","B":"alt (替代/條件分支)","C":"class (類別)","D":"opt (選項)"},"ans":"ABD"},{"q":"22. 設計類別 (Design Class) 與分析類別 (Analysis Class) 的差異，包含下列哪些？","opts":{"A":"設計類別包含更完整的屬性型態定義","B":"設計類別會標示方法的參數與回傳型態","C":"分析類別比較接近使用者的業務語言","D":"設計類別必須完全使用英文命名"},"ans":"ABC"},{"q":"23. 在互動圖中，關於「訊息」(Message) 的傳遞，下列敘述哪些正確？","opts":{"A":"實線實心箭頭通常代表同步訊息 (Synchronous)","B":"實線開放箭頭通常代表非同步訊息 (Asynchronous)","C":"虛線箭頭通常代表回傳訊息 (Reply/Return)","D":"訊息名稱通常對應到接收物件的方法 (Method)"},"ans":"ABCD"},{"q":"24. 高內聚力的模組通常具有下列哪些優點？","opts":{"A":"功能單純，容易理解","B":"程式碼修改時的影響範圍較容易控制","C":"模組之間的相依性必定最高","D":"容易被其他系統或模組引用"},"ans":"ABD"},{"q":"25. 若一個系統的「耦合力」過高，可能會產生哪些問題？","opts":{"A":"修改Ａ模組時，Ｂ模組也壞了 (連動效應)","B":"難以單獨測試某個模組","C":"系統結構像義大利麵一樣糾纏不清","D":"模組的功能劃分非常清晰"},"ans":"ABC"},{"q":"26. 在 MVC 架構中，Controller 的職責包含哪些？","opts":{"A":"解析使用者的輸入 (Request)","B":"決定要呼叫哪個 Model 進行處理","C":"決定要選擇哪個 View 呈現結果","D":"定義資料庫的連線字串"},"ans":"ABC"},{"q":"27. 下列哪些情況適合使用「巢狀框架」(Nested Frame)？","opts":{"A":"流程中包含「如果...則...」且內部還有「迴圈」的情況","B":"需要表達多層次的複雜商業邏輯","C":"只是為了讓圖表看起來比較專業","D":"當單一層次的 Fragment 無法完整表達邏輯時"},"ans":"ABD"},{"q":"28. 關於系統設計中的「介面設計」，下列哪些原則是良好的實踐？","opts":{"A":"保持介面的一致性 (Consistency)","B":"提供清楚的錯誤訊息與回饋","C":"設計應符合使用者的心智模型","D":"盡量隱藏所有功能以保持畫面簡潔"},"ans":"ABC"},{"q":"29. 在物件導向設計中，為什麼需要「生命線」(Lifeline)？","opts":{"A":"標示物件在互動過程中的存在時間","B":"區分不同的參與物件","C":"展示物件之間的靜態關係","D":"作為訊息傳遞的起點與終點"},"ans":"ABD"},{"q":"30. 下列哪些敘述符合「建構者」(Constructor) 的行為模式？","opts":{"A":"Java 中使用 new 關鍵字時會觸發","B":"C++ 中建構者名稱與類別名稱相同","C":"可以在建構者中設定屬性的預設值","D":"一個類別可以擁有多個參數不同的建構者 (Overloading)"},"ans":"ABCD"}]},"ch8_10":{"label":"CH8 課後十題","items":[{"q":"1. 物件導向設計程序的次序為\n(1)明確說明每一方法之標示符號與演算法 (2)以個別使用案例為主設計出互動圖 (3)重新調整類別圖 (4)定義展現層和資料存取層 (5)描繪設計類別圖","opts":{"A":"52143","B":"25143","C":"25314","D":"25341"},"ans":"C"},{"q":"2. 內聚力的種類及強度，從高到低排序\n(1)暫時內聚 (2)邏輯內聚 (3)巧合內聚 (4)溝通內聚 (5)程序內聚 (6)功能內聚 (7)資訊內聚力","opts":{"A":"5467123","B":"6745123","C":"4576123","D":"7645123"},"ans":"D"},{"q":"3. 耦合力的種類與強度高低，由高到低排序\n(1)資料耦合 (2)戳記耦合 (3)控制耦合 (4)內容耦合 (5)共通耦合","opts":{"A":"12345","B":"54321","C":"45321","D":"12354"},"ans":"C"},{"q":"4. 以下敘述何者正確？","opts":{"A":"設計時，要設計出高內聚力與高耦合力的模組或是類別","B":"設計時，要設計出低內聚力與低耦合力的模組或是類別","C":"設計時，要設計出高內聚力與低耦合力的模組或是類別","D":"設計時，要設計出低內聚力與高耦合力的模組或是類別"},"ans":"C"},{"q":"5. 以下敘述何者正確？","opts":{"A":"物件導向設計就是要決定哪些操作屬於哪些類別及類別間如何交互作用","B":"物件導向設計就是要決定哪些操作屬於哪些類別及物件間如何交互作用","C":"物件導向設計就是要決定哪些操作屬於哪些類別及方法間如何交互作用","D":"物件導向設計就是要決定哪些操作屬於哪些程式及程式間如何交互作用"},"ans":"A"},{"q":"6. 以下敘述何者正確？\n(1)責任有兩種基本的型態，分別為實施型態和認知型態\n(2)實施型態是指這個物件本身要執行一些工作，或者要求其他物件執行工作\n(3)認知型態則是指要知曉封裝在物件內屬性的值、要知曉所關聯的物件為何","opts":{"A":"12","B":"23","C":"13","D":"123"},"ans":"D"},{"q":"7. 以下敘述何者正確？\n(1)除了內聚、耦合和責任指派之外，還有以下的設計原則：變動保護、間接機制、別與陌生人談話\n(2)介面設計樣式時，將以六個構面來加以說明，分別為樣式名稱、問題、解決方案、範例、效益、討論\n(3)在UML的表示上，會將類別名稱以斜體字表示，或是加上{abstract}之字句以作為區隔，抽象方法也是以同樣的方式表示","opts":{"A":"123","B":"12","C":"23","D":"13"},"ans":"A"},{"q":"8. 初步類別圖和設計類別圖之間的差異有以下幾點為真？\n(1)類別屬性的表達 (2)增加類別的方法 (3)類別間關聯性關係的改變 (4)類別間的相依關係","opts":{"A":"1","B":"12","C":"123","D":"1234"},"ans":"A"},{"q":"9. 重新調整類別圖之細部處理事項，下列何者為真？\n(1)使用一般化及特殊化方法檢視所有類別以建立繼承關係 (2)重新調整物件間之連結性 (3)增加限制性關連與相依關係","opts":{"A":"12","B":"23","C":"13","D":"123"},"ans":"D"},{"q":"10. 虛擬碼具有以下特性，下列何者為真？\n(1)虛擬碼的指令集沒有限制，可以任意增減\n(2)虛擬碼不能編譯，不被任何正規語言的文法規則束縛\n(3)和硬體有相關\n(4)適合現代軟體發展觀念\n(5)在撰寫程式之前，利於設計上的檢查\n(6)能讓程式設計師的觀念以較高的可讀性和實質的形式表達出來","opts":{"A":"13456","B":"12456","C":"12345","D":"23456"},"ans":"B"}]},"ch8_30":{"label":"CH8 課後30題","items":[{"q":"1. 關於「模組設計」(Modular Design) 的敘述，下列哪些是正確的？","opts":{"A":"將複雜系統分解為較小、可管理的單元","B":"每個模組應具備獨立的功能","C":"模組之間應盡量緊密相依以提高效能","D":"透過定義良好的介面進行溝通"},"ans":"ABD"},{"q":"2. 關於「內聚力」(Cohesion)，下列哪些說法符合優良設計原則？","opts":{"A":"衡量模組內部元素彼此關聯的緊密程度","B":"優良的設計應追求「低內聚力」","C":"高內聚力通常代表模組只專注做一件事","D":"內聚力高有助於提升系統的可維護性與可重用性"},"ans":"ACD"},{"q":"3. 關於「耦合力」(Coupling) 的概念，下列哪些敘述正確？","opts":{"A":"衡量不同模組之間相互依賴的程度","B":"設計目標應追求「低耦合力」","C":"高耦合力代表修改一個模組時，容易影響到其他模組","D":"若模組間完全沒有耦合，系統通常無法協同運作"},"ans":"ABCD"},{"q":"4. 關於「責任驅動設計」(Responsibility-Driven Design, RDD)，下列哪些是其核心精神？","opts":{"A":"將軟體視為一群具有責任的物件之互動","B":"強調「誰負責做這件事」大於「這是什麼資料」","C":"使用 CRC 卡 (Class-Responsibility-Collaborator) 來輔助思考","D":"先設計資料庫關聯，再決定物件行為"},"ans":"ABC"},{"q":"5. 關於「抽象類別」(Abstract Class)，下列特徵哪些正確？","opts":{"A":"不能使用 new 關鍵字直接產生實例 (Instance)","B":"可以包含抽象方法 (未實作的方法)","C":"可以包含已實作的具體方法與屬性","D":"主要目的是為了讓子類別繼承並實作共同規範"},"ans":"ABCD"},{"q":"6. 為何我們需要「抽象類別」？下列哪些是其主要用途？","opts":{"A":"強迫子類別必須實作特定的方法 (定義契約)","B":"提供多型 (Polymorphism) 的基礎","C":"減少重複程式碼 (將共用邏輯放在父類別)","D":"為了讓程式執行速度變慢"},"ans":"ABC"},{"q":"7. 在 UML 類別圖中，關於「相依性」(Dependency) 的敘述哪些正確？","opts":{"A":"通常使用虛線箭頭表示","B":"表示一個類別的改變可能會影響另一個類別","C":"是一種比關聯 (Association) 更強的關係","D":"常見於一個類別的方法參數使用了另一個類別"},"ans":"ABD"},{"q":"8. 關於「初步類別圖」(Preliminary Class Diagram) 的特徵，下列哪些正確？","opts":{"A":"通常在分析階段或概念設計階段繪製","B":"著重於捕捉領域概念與屬性","C":"必須完整定義所有方法的參數與回傳型態","D":"通常不包含詳細的導航方向與可見性 (Visibility)"},"ans":"ABD"},{"q":"9. 關於「設計類別圖」(Design Class Diagram) 與初步類別圖的差異，下列哪些敘述正確？","opts":{"A":"設計類別圖必須標示屬性與方法的資料型態","B":"設計類別圖會定義成員的可見性 (+, -, #)","C":"設計類別圖中的關聯線通常會加上導航箭頭","D":"設計類別圖不需考慮實作語言的特性"},"ans":"ABC"},{"q":"10. 軟體設計模式中的「四人幫」(Gang of Four, GoF) 指的是什麼？","opts":{"A":"四位著名的軟體工程學家 (Erich Gamma 等人)","B":"一本名為《Design Patterns》的經典著作","C":"一種特定的程式語言","D":"提出了 23 種基礎的設計樣式"},"ans":"ABD"},{"q":"11. 關於「樣式」(Pattern) 在軟體工程中的定義，下列哪些正確？","opts":{"A":"是針對特定情境下常見問題的通用解決方案","B":"樣式提供了一種共同的溝通語言","C":"使用樣式保證程式碼一定沒有 Bug","D":"樣式通常包含名稱、問題描述、解決方案與後果"},"ans":"ABD"},{"q":"12. 「變動保護」(Protected Variations) 的核心概念包含哪些？","opts":{"A":"找出系統中預測會發生變化的部分","B":"將不穩定的部分封裝起來","C":"使用介面 (Interface) 或多型來隔離變化","D":"目的是讓變動的影響範圍最小化"},"ans":"ABCD"},{"q":"13. 關於「別與陌生人談話」(Law of Demeter) 原則，下列哪些行為是被允許的？","opts":{"A":"物件呼叫自己的方法","B":"物件呼叫傳入參數之物件的方法","C":"物件呼叫自己所創造的物件之方法","D":"物件呼叫「某物件回傳之物件」的方法 (連環呼叫)"},"ans":"ABC"},{"q":"14. 採用「間接機制」(Indirection) 的主要目的與效益為何？","opts":{"A":"降低兩個元素之間的耦合力","B":"透過中介物件來協調互動","C":"可能導致系統效能微幅下降，但換取彈性","D":"讓程式碼行數變得極少"},"ans":"ABC"},{"q":"15. 在設計模型中，關聯線端點的「角色名稱」(Role Name) 有何意義？","opts":{"A":"描述該物件在關聯中扮演的角色","B":"在程式碼實作時，通常會對應成「實例變數」(Instance Variable) 的名稱","C":"僅是裝飾用，無實際用途","D":"有助於理解物件之間的業務關係"},"ans":"ABD"},{"q":"16. 下列哪些屬於 GoF 定義的設計模式分類？","opts":{"A":"生成式 (Creational)","B":"結構式 (Structural)","C":"行為式 (Behavioral)","D":"資料庫式 (Database)"},"ans":"ABC"},{"q":"17. 關於「依賴注入」(Dependency Injection) 與「耦合力」的關係，下列哪些正確？","opts":{"A":"依賴注入是一種降低耦合力的技術","B":"透過外部將依賴物件注入，而非由物件自行建立","C":"符合「變動保護」與「間接機制」的精神","D":"會增加模組之間的緊密結合"},"ans":"ABC"},{"q":"18. 好的模組化設計通常會展現下列哪些特質？","opts":{"A":"高內聚力 (High Cohesion)","B":"低耦合力 (Low Coupling)","C":"資訊隱藏 (Information Hiding)","D":"全域變數的最大化使用"},"ans":"ABC"},{"q":"19. 在類別圖中，若 Class A 繼承自 Class B，下列敘述哪些正確？","opts":{"A":"Class B 是父類別 (Superclass)","B":"Class A 是子類別 (Subclass)","C":"使用實線空心三角形箭頭指向 Class B","D":"Class A 擁有 Class B 所有的公開與保護成員"},"ans":"ABCD"},{"q":"20. 關於「介面」(Interface) 在設計上的應用，下列哪些正確？","opts":{"A":"介面定義了一組操作規範，但不包含實作","B":"一個類別可以實作多個介面","C":"有助於實現「間接機制」與「變動保護」","D":"介面中的方法預設都是私有的 (Private)"},"ans":"ABC"},{"q":"21. 下列哪些情境適合使用「責任驅動設計」(RDD) 的思考方式？","opts":{"A":"決定哪個物件應該擁有「計算總金額」的方法","B":"分配系統功能給各個類別","C":"決定資料庫表格的主鍵","D":"思考物件之間的協作關係"},"ans":"ABD"},{"q":"22. 下列哪些是違反「別與陌生人談話」(Law of Demeter) 的程式碼特徵？","opts":{"A":"objectA.getB().getC().doSomething()","B":"this.doTask()","C":"程式碼中出現長串的導航路徑 (Train Wreck)","D":"直接存取全域變數"},"ans":"AC"},{"q":"23. 關於「實體關聯圖」(ER Model) 與「類別圖」(Class Diagram) 的比較，哪些正確？","opts":{"A":"ER Model 側重資料結構與儲存","B":"類別圖包含資料 (屬性) 與行為 (方法)","C":"兩者都可以用來描述系統結構","D":"設計物件導向系統時，類別圖比 ER Model 更關鍵"},"ans":"ABCD"},{"q":"24. 在設計階段，將「分析類別」轉為「設計類別」時，通常會做哪些調整？","opts":{"A":"確認屬性的具體型別 (如 int, String)","B":"決定參數的傳遞方式","C":"添加輔助類別或介面以優化架構","D":"刪除所有的方法"},"ans":"ABC"},{"q":"25. 下列哪些設計模式屬於「生成式樣式」(Creational Patterns)？","opts":{"A":"工廠模式 (Factory Method)","B":"單例模式 (Singleton)","C":"觀察者模式 (Observer)","D":"轉接器模式 (Adapter)"},"ans":"AB"},{"q":"26. 下列哪些設計模式屬於「結構式樣式」(Structural Patterns)？","opts":{"A":"轉接器模式 (Adapter)","B":"裝飾者模式 (Decorator)","C":"合成模式 (Composite)","D":"策略模式 (Strategy)"},"ans":"ABC"},{"q":"27. 下列哪些設計模式屬於「行為式樣式」(Behavioral Patterns)？","opts":{"A":"觀察者模式 (Observer)","B":"策略模式 (Strategy)","C":"命令模式 (Command)","D":"單例模式 (Singleton)"},"ans":"ABC"},{"q":"28. 關於「資訊隱藏」(Information Hiding) 的優點，哪些正確？","opts":{"A":"隱藏實作細節，只暴露必要的介面","B":"減少「漣漪效應」(Ripple Effect)，修改內部不影響外部","C":"增加模組之間的耦合力","D":"提升系統的安全性與穩定性"},"ans":"ABD"},{"q":"29. 設計類別圖中的「可見性」(Visibility) 符號，下列對應哪些正確？","opts":{"A":"+ 代表 Public (公開)","B":"- 代表 Private (私有)","C":"# 代表 Protected (保護)","D":"~ 代表 Package (套件內可見)"},"ans":"ABCD"},{"q":"30. 如果發現兩個類別之間有過多的雙向關聯，下列哪些重構手段是合理的？","opts":{"A":"引入中介物件 (Indirection)","B":"檢查是否能改為單向關聯","C":"合併這兩個類別 (若內聚力允許)","D":"增加更多的相依性"},"ans":"ABC"}]},"ch9_10":{"label":"CH9 課後十題","items":[{"q":"1. 邏輯架構分為哪三層？\n(1)展現層 (2)使用層 (3)應用層 (4)資料存取層","opts":{"A":"123","B":"234","C":"134","D":"124"},"ans":"C"},{"q":"2. 使用模式-外觀分隔原理來設計展現層以下何者錯誤？","opts":{"A":"當展現層設計改變時，會⼤量降低對應⽤層之影響，反之亦然","B":"當需要不同的介⾯時，需設計不同的展現層，這時不會影響應⽤層之物件","C":"容易將應⽤層之程式轉移到其他介⾯或環境內","D":"發展時，展現層與應⽤層必須同時發展"},"ans":"D"},{"q":"3. 使用者使用介面障礙，何者為非？","opts":{"A":"介⾯使⽤過多的專業術語和⾸字⺟縮寫字","B":"介⾯的操作⽅式不清楚，使⽤時無法憑直覺獲知","C":"容易判斷下⼀步要怎麼做","D":"介⾯設計格式不⼀致"},"ans":"C"},{"q":"4. 設計使用者介面建議，下列何者錯誤？","opts":{"A":"瞭解使⽤者和他們的⼯作","B":"讓使⽤者參與使⽤者介⾯設計的⼯作","C":"讓使⽤者實際進⾏系統測試","D":"實施瀑布式設計⽅式"},"ans":"D"},{"q":"5. 下列何者不是介面設計的黃金紀律？","opts":{"A":"致⼒於維持介⾯的⼀致性","B":"提供捷徑給頻繁使⽤系統的⼈","C":"提供簡單的錯誤處理功能","D":"提高短期記憶"},"ans":"D"},{"q":"6. 以下何者不是輸入設備？","opts":{"A":"鍵盤","B":"螢幕","C":"觸控板","D":"無線射頻識別系統"},"ans":"B"},{"q":"7. 以下何者不是輸出設備？","opts":{"A":"印表機","B":"滑⿏","C":"繪圖機","D":"喇叭與語⾳輸出"},"ans":"B"},{"q":"8. 以下何者不包含在視窗外框？","opts":{"A":"視窗標題列","B":"⼯具列","C":"捲軸","D":"標籤⽂字"},"ans":"D"},{"q":"9. 設計視窗應用系統的介面時，基本控制項有以下哪些？","opts":{"A":"1、2、3、4、5、6、7、8","B":"1、2、3、4、6、7、8","C":"1、2、3、4、6、7","D":"1、6、7"},"ans":"A"},{"q":"10. 以下敘述，何者錯誤？","opts":{"A":"通常在應⽤層和資料存取層中間加上⼀個控制物件，讓訊息傳遞更為集中，這個控制物件就稱之為控制者","B":"在設計系統時，會將關係較密切的類別集合為⼀個群組，這些群組可為⼦系統、階層或套件，稱為系統的邏輯架構","C":"圖形化使⽤者介⾯最早是在70 年代由全錄帕羅奧多研究中⼼所發展出來","D":"整體視窗介⾯由幾個標準的物件所構成，這些物件包括視窗外框和視窗內容"},"ans":"A"}]},"ch9_30":{"label":"CH9 課後30題","items":[{"q":"1. 關於「邏輯架構」(Logical Architecture) 的敘述，下列哪些是正確的？","opts":{"A":"將軟體系統組織成一組相關的類別或套件","B":"描述系統在實體硬體上的部署方式","C":"主要關注軟體內部的分層與職責劃分","D":"與具體的程式語言或技術實作無關"},"ans":"ACD"},{"q":"2. 三層式架構中的「展現層」(Presentation Layer) 主要負責哪些工作？","opts":{"A":"處理使用者的輸入 (Input)","B":"顯示資訊給使用者 (Output)","C":"執行複雜的商業邏輯運算","D":"直接連線至資料庫進行查詢"},"ans":"AB"},{"q":"3. 關於「應用層」(Application Layer / Business Logic Layer) 的職責，下列哪些正確？","opts":{"A":"控制應用程式的流程","B":"執行核心的商業規則與計算","C":"格式化 HTML 或視窗介面","D":"協調資料存取層與展現層之間的互動"},"ans":"ABD"},{"q":"4. 「資料存取層」(Data Access Layer, DAL) 的主要功能包含哪些？","opts":{"A":"隱藏資料庫連線的細節","B":"提供 SQL 指令來存取資料","C":"驗證使用者輸入的表單格式","D":"將資料庫的資料轉換為物件供應用層使用"},"ans":"ABD"},{"q":"5. 關於「即顯式選單」(Pop-up Menu / Context Menu) 的特性，下列哪些描述正確？","opts":{"A":"通常透過滑鼠右鍵點擊或長按來觸發","B":"選單內容會根據點擊的目標物件而有所不同 (Context-sensitive)","C":"永遠固定在視窗的頂端","D":"是一種節省螢幕空間的設計"},"ans":"ABD"},{"q":"6. 「對話視窗」(Dialog Box) 通常用於下列哪些情境？","opts":{"A":"需要使用者輸入多個複雜的參數設定","B":"顯示簡單的警告訊息後立即消失","C":"強制使用者在繼續操作前做出回應 (Modal)","D":"展示系統的主要操作畫面"},"ans":"AC"},{"q":"7. 關於「訊息視窗」(Message Box) 的使用時機與特徵，哪些正確？","opts":{"A":"用來通知使用者發生錯誤或作業完成","B":"通常包含「確定」、「取消」等簡單按鈕","C":"適合用來填寫長篇的註冊表格","D":"是一種干擾性較高的回饋機制"},"ans":"ABD"},{"q":"8. 關於「超文字」(Hypertext) 的概念，下列哪些敘述正確？","opts":{"A":"是一種非線性的資料組織方式","B":"使用者必須依照固定順序閱讀","C":"包含節點 (Nodes) 與連結 (Links)","D":"網際網路 (WWW) 是最著名的超文字應用"},"ans":"ACD"},{"q":"9. 「超連結」(Hyperlink) 的主要功能包含哪些？","opts":{"A":"在不同的網頁或文件之間進行導覽","B":"下載檔案","C":"觸發特定的程式或腳本 (如 mailto)","D":"自動排版文件內容"},"ans":"ABC"},{"q":"10. 「無線射頻識別」(RFID) 技術相較於傳統條碼 (Barcode)，具有哪些優勢？","opts":{"A":"讀取時不需要直線對準 (Line of sight)","B":"可以同時讀取多個標籤","C":"標籤內容可以重複寫入或更新","D":"建置成本通常比條碼系統低廉"},"ans":"ABC"},{"q":"11. 設計良好的「報表」(Report) 應遵循哪些原則？","opts":{"A":"資訊應根據使用者需求進行過濾與摘要","B":"版面配置應保持簡潔，避免過多雜訊","C":"強調異常值或關鍵績效指標 (KPI)","D":"不論資料量多大，都必須列出所有原始明細"},"ans":"ABC"},{"q":"12. 下列哪些輸入裝置適合用於「來源資料自動化」(Source Data Automation)？","opts":{"A":"條碼掃描器 (Barcode Scanner)","B":"光學字元辨識 (OCR)","C":"鍵盤 (Keyboard)","D":"RFID 讀取器"},"ans":"ABD"},{"q":"13. 在選擇輸入裝置時，下列哪些考量是正確的？","opts":{"A":"大量文字輸入首選鍵盤","B":"POS 結帳系統適合使用條碼掃描以求快速準確","C":"公共資訊站 (Kiosk) 適合使用觸控螢幕","D":"繪圖設計工作適合使用數位板或高精度滑鼠"},"ans":"ABCD"},{"q":"14. 將系統劃分為展現層、應用層、資料存取層的主要好處有哪些？","opts":{"A":"提高系統的可維護性","B":"方便團隊分工開發 (如前端工程師、後端工程師)","C":"更換資料庫時不需要修改展現層程式碼","D":"會讓程式執行速度比不分層更快"},"ans":"ABC"},{"q":"15. 關於使用者介面 (UI) 設計中的「回饋」(Feedback) 機制，下列哪些是良好的設計？","opts":{"A":"按下按鈕後，按鈕呈現被按下的視覺效果","B":"長時運算時顯示進度條 (Progress Bar)","C":"發生錯誤時提供清楚的解決建議，而非僅顯示錯誤代碼","D":"為了美觀，盡量減少所有的提示訊息"},"ans":"ABC"},{"q":"16. 在網頁設計中，下列哪些元素屬於「導覽」(Navigation) 機制？","opts":{"A":"全域導覽列 (Global Navigation Bar)","B":"麵包屑 (Breadcrumbs)","C":"頁尾連結 (Footer Links)","D":"資料庫連線字串"},"ans":"ABC"},{"q":"17. 關於 RFID 的應用場景，下列哪些非常適合？","opts":{"A":"物流倉儲的貨物追蹤","B":"圖書館的自動借還書系統","C":"高速公路電子收費 (如 ETC)","D":"撰寫長篇電子郵件"},"ans":"ABC"},{"q":"18. 在設計「資料輸入表單」時，下列哪些做法能減少錯誤？","opts":{"A":"使用下拉式選單限制輸入選項","B":"設定欄位的資料格式檢查 (Validation)","C":"提供預設值 (Default Value)","D":"將所有欄位都設為必填"},"ans":"ABC"},{"q":"19. 下列哪些是「邏輯架構」設計階段會產出的圖表或模型？","opts":{"A":"類別圖 (Class Diagram)","B":"套件圖 (Package Diagram)","C":"伺服器機櫃配置圖","D":"順序圖 (Sequence Diagram)"},"ans":"ABD"},{"q":"20. 關於「圖形使用者介面」(GUI) 的優點，包括哪些？","opts":{"A":"縮短使用者的學習曲線","B":"提供直覺的操作方式 (WYSIWYG)","C":"完全不需要消耗系統資源","D":"透過圖示與視窗呈現資訊"},"ans":"ABD"},{"q":"21. 設計報表時，針對「高階主管」的需求，通常具有哪些特徵？","opts":{"A":"高度彙總的摘要資訊","B":"圖表化的趨勢分析","C":"詳細的每一筆交易紀錄","D":"例外狀況的警示"},"ans":"ABD"},{"q":"22. 在 Web 應用程式中，展現層通常涉及哪些技術？","opts":{"A":"HTML","B":"CSS","C":"JavaScript","D":"SQL"},"ans":"ABC"},{"q":"23. 關於「模態視窗」(Modal Window) 與「非模態視窗」(Modeless Window) 的差異，哪些正確？","opts":{"A":"模態視窗會鎖定父視窗，使用者必須先處理它","B":"非模態視窗允許使用者同時與父視窗互動","C":"「尋找與取代」功能通常設計為非模態，以便使用者看見內文","D":"「檔案另存新檔」通常設計為模態"},"ans":"ABCD"},{"q":"24. 下列哪些情況適合使用「批次處理」(Batch Processing) 而非即時輸入？","opts":{"A":"薪資計算與發放","B":"水電費帳單產製","C":"銀行信用卡即時授權","D":"每日庫存日結報表"},"ans":"ABD"},{"q":"25. 關於「人機介面」(HCI) 的設計目標，下列哪些是核心考量？","opts":{"A":"可用性 (Usability)","B":"功能性 (Functionality)","C":"使用者體驗 (User Experience)","D":"強迫使用者適應系統邏輯"},"ans":"ABC"},{"q":"26. 若系統回應速度變慢，根據分層架構，問題可能出現在哪裡？","opts":{"A":"展現層的 JavaScript 執行效率差","B":"應用層的演算法複雜度過高","C":"資料存取層的 SQL 查詢未最佳化","D":"網路傳輸頻寬不足"},"ans":"ABCD"},{"q":"27. 關於「下拉式選單」(Drop-down Menu) 的優點，哪些正確？","opts":{"A":"節省螢幕空間","B":"防止使用者輸入錯誤的資料","C":"可以容納大量的選項","D":"使用者可以一眼看到所有選項而不需點擊"},"ans":"ABC"},{"q":"28. 在資料存取層中，為了防止 SQL Injection 攻擊，應採取哪些措施？","opts":{"A":"使用參數化查詢 (Parameterized Queries)","B":"使用字串串接方式組 SQL 指令","C":"驗證並過濾所有輸入資料","D":"使用 ORM (物件關聯對映) 工具"},"ans":"ACD"},{"q":"29. 關於行動裝置 (Mobile) 的展現層設計，應注意哪些限制與特性？","opts":{"A":"螢幕尺寸較小","B":"觸控操作不若滑鼠精準","C":"需要考慮直向與橫向的旋轉","D":"可以隨意使用大量的懸浮視窗 (Hover effects)"},"ans":"ABC"},{"q":"30. 下列哪些屬於「輸出裝置」(Output Devices)？","opts":{"A":"印表機","B":"螢幕 (Monitor)","C":"揚聲器 (Speaker)","D":"掃描器"},"ans":"ABC"}]},"ch10_10":{"label":"CH10 課後十題","items":[{"q":"1. 下敘述何者為真？","opts":{"A":"將資料存取層分開的主要目的是在於能夠降低和應用層的耦合力，當資料存取層或應用層的需求變更時，彼此不會受到影響","B":"將展現層分開的主要目的是在於能夠降低和應用層的耦合力，當展現層或應用層的需求變更時，彼此不會受到影響","C":"大部分的類別內的屬性不是這麼單純，某些類別的屬性不是單純的資料型態，而是複雜的資料結構或是類別型態","D":"以上皆是"},"ans":"D"},{"q":"2. 邏輯資料庫設計程序步驟為何？\n(1)建立實體之間的關係 (2)確認每一個實體之屬性 (3)尋找應用系統所需要的實體 (4)找出每一個實體的主鍵 (5)繪製實體關係圖","opts":{"A":"3、4、1、2、5","B":"3、2、1、4、5","C":"3、1、4、2、5","D":"3、1、2、4、5"},"ans":"A"},{"q":"3. 以下敘述何者為真？","opts":{"A":"資料庫管理系統將資料分為資料項、表格和資料庫","B":"資料庫管理系統將資料分為資料項、紀錄、表格和資料庫","C":"資料庫管理系統將資料分為紀錄、表格和資料庫","D":"資料庫管理系統將資料分為資料項、紀錄和表格"},"ans":"B"},{"q":"4. 以下敘述何者為非？","opts":{"A":"基數是指⼀個實體之⼀個出現數關聯到另⼀個實體的最⼤或最⼩出現數","B":"以上皆⾮","C":"邏輯資料庫主要是設計出應⽤系統所需要的資料模型，⼜稱為實體關係模型","D":"實體間不能有多對多的關係，主要的原因是兩個多對多的實體無法彼此建⽴關聯"},"ans":"B"},{"q":"5. 以下敘述何者為真？","opts":{"A":"以上皆非","B":"資料庫設計工作是直接將資料輸入資料庫再進行調整","C":"第二階段進行邏輯資料庫設計","D":"第一階段先進行實體資料庫設計"},"ans":"A"},{"q":"6. 以下敘述何者為真？","opts":{"A":"資料庫管理系統最常見的類型為關聯式資料庫管理系統","B":"資料庫管理系統將資料分為資料項、紀錄和表格","C":"資料庫管理系統最常見的類型為物件導向資料庫管理系統","D":"以上皆非"},"ans":"A"},{"q":"7. 以下敘述何者為真？","opts":{"A":"以上皆非","B":"第三正規化去除重複群體","C":"第二正規化非鍵值屬性完全功能相依於主鍵而且彼此不相依","D":"第一正規化非鍵值屬性功能相依於主鍵"},"ans":"A"},{"q":"8. 以下敘述何者為真？","opts":{"A":"在應⽤系統中的實體類別需要記住某些實際的資料，所以當啟動系統時，需要從儲存設備將資料讀出存⼊物件之中","B":"類別的屬性不⼀定是單純的資料型態，可能是複雜的資料結構或是類別型態","C":"以上皆是","D":"系統執⾏結束時，將類別內的資料寫⼊資料庫中，這些需要保存資料的物件就稱之為永續物件"},"ans":"C"},{"q":"9. 傳統的電腦系統架構之檔案皆各自獨立，造成許多問題，以下何者為非？","opts":{"A":"程式與資料相互依賴","B":"資料重複與不一致","C":"資料共享","D":"沒有彈性"},"ans":"C"},{"q":"10. 以下敘述何者為偽？","opts":{"A":"進行正規化時，可以依實際需要先進行第二或第三正規化","B":"重複群體是指在一個資料紀錄中，存在某些性質相同的欄位重複出現多次以上","C":"遞移相依是指存在非主鍵的欄位相依於其他非主鍵欄位","D":"功能相依是指紀錄中 A 欄位的值決定，則 B 欄位的值唯一被決定"},"ans":"A"}]},"ch10_30":{"label":"CH10 課後30題","items":[{"q":"1. 關於「資料模型」(Data Model) 的敘述，下列哪些是正確的？","opts":{"A":"用來描述資料、資料與資料間的關係","B":"主要用來定義資料的運算邏輯 (Algorithm)","C":"包含資料的語意與限制條件","D":"是真實世界資料特徵的抽象表示"},"ans":"ACD"},{"q":"2. 「資料模型化」(Data Modeling) 的主要目的包含哪些？","opts":{"A":"建立資料庫的實體儲存結構","B":"作為系統分析師與使用者溝通的橋樑","C":"確保資料需求的完整性與正確性","D":"撰寫 SQL 查詢語句"},"ans":"BC"},{"q":"3. 關於「資料庫管理系統」(DBMS) 的功能，下列哪些正確？","opts":{"A":"提供資料定義語言 (DDL) 來建立資料庫架構","B":"提供資料操作語言 (DML) 來存取資料","C":"負責資料的並行控制 (Concurrency Control)","D":"主要用於繪製 ER 圖"},"ans":"ABC"},{"q":"4. 在「實體關係模型」(ER Model) 中，下列符號對應哪些意義？","opts":{"A":"矩形代表實體 (Entity)","B":"橢圓形代表屬性 (Attribute)","C":"菱形代表關係 (Relationship)","D":"虛線代表主鍵"},"ans":"ABC"},{"q":"5. 關於「邏輯資料庫設計」(Logical Database Design)，下列哪些工作屬於此階段？","opts":{"A":"將 ER 圖轉換為關聯表 (Relations)","B":"進行正規化 (Normalization)","C":"設計索引 (Index) 以優化效能","D":"定義欄位的資料型態 (如 INT, VARCHAR)"},"ans":"ABD"},{"q":"6. 「實體資料庫設計」(Physical Database Design) 主要考量哪些因素？","opts":{"A":"資料的儲存結構與檔案組織","B":"存取路徑與索引的建立","C":"消除重複群體","D":"系統效能與儲存空間的最佳化"},"ans":"ABD"},{"q":"7. 關於「主鍵」(Primary Key) 的特性，下列哪些是必須具備的？","opts":{"A":"唯一性 (Unique)，不可重複","B":"不可為空值 (Not Null)","C":"一個資料表只能有一個主鍵 (可以是單一或複合欄位)","D":"必須是整數型態"},"ans":"ABC"},{"q":"8. 「外來鍵」(Foreign Key) 的主要作用包含哪些？","opts":{"A":"建立兩個資料表之間的關聯","B":"確保參考完整性 (Referential Integrity)","C":"防止使用者輸入不存在的參考值","D":"作為資料表的唯一識別碼"},"ans":"ABC"},{"q":"9. 關於「複合鍵」(Composite Key) 的敘述，哪些正確？","opts":{"A":"由兩個或兩個以上的欄位組合而成的主鍵","B":"當單一欄位不足以識別唯一性時使用","C":"複合鍵中的每一個欄位都必須具有唯一性","D":"常見於多對多關係的中間表 (Junction Table)"},"ans":"ABD"},{"q":"10. 進行「正規化」(Normalization) 的主要目的為何？","opts":{"A":"減少資料重複 (Redundancy)","B":"避免更新異常 (Update Anomaly)","C":"避免刪除異常 (Delete Anomaly)","D":"讓資料表查詢速度變到最快"},"ans":"ABC"},{"q":"11. 關於「重複群體」(Repeating Groups)，下列哪些敘述正確？","opts":{"A":"指在同一個欄位中包含多個值","B":"指在一個實體中，某個屬性有多組值","C":"存在重複群體的資料表不符合第一正規化 (1NF)","D":"可以透過將重複資料移至新的子表來解決"},"ans":"ABCD"},{"q":"12. 要符合「第一正規化」(1NF)，必須滿足哪些條件？","opts":{"A":"每個欄位都必須是原子值 (Atomic Value)","B":"消除重複群體","C":"必須設定主鍵","D":"消除遞移相依"},"ans":"ABC"},{"q":"13. 要符合「第二正規化」(2NF)，必須滿足哪些條件？","opts":{"A":"已符合第一正規化 (1NF)","B":"消除部分功能相依 (Partial Dependency)","C":"非主鍵屬性必須完全相依於主鍵","D":"消除遞移相依"},"ans":"ABC"},{"q":"14. 關於「部分功能相依」(Partial Dependency) 的情境，下列哪些正確？","opts":{"A":"通常發生在主鍵是複合鍵的情況","B":"某個非主鍵欄位只依賴於複合主鍵中的其中一個欄位","C":"會導致資料冗餘與異常","D":"解決方式是將該欄位獨立出去成為新的資料表"},"ans":"ABCD"},{"q":"15. 要符合「第三正規化」(3NF)，必須滿足哪些條件？","opts":{"A":"已符合第二正規化 (2NF)","B":"消除遞移相依 (Transitive Dependency)","C":"非主鍵屬性之間不可互相依賴","D":"消除所有的一對多關係"},"ans":"ABC"},{"q":"16. 關於「遞移相依」(Transitive Dependency) 的例子，下列哪些符合？","opts":{"A":"學號 -> 系碼，系碼 -> 系主任","B":"訂單編號 -> 客戶編號，客戶編號 -> 客戶地址","C":"身分證號 -> 姓名","D":"A 決定 B，B 決定 C，所以 A 決定 C"},"ans":"ABD"},{"q":"17. 在關聯式資料庫中，若違反「參考完整性」(Referential Integrity)，可能發生什麼事？","opts":{"A":"刪除父資料表的紀錄時，導致子資料表出現孤兒紀錄 (Orphan Records)","B":"在子資料表中輸入了父資料表不存在的 ID","C":"資料庫自動修復所有錯誤","D":"查詢速度變慢"},"ans":"AB"},{"q":"18. 下列哪些是資料庫設計中常見的「異常」(Anomaly)？","opts":{"A":"新增異常 (Insertion Anomaly)","B":"修改異常 (Update Anomaly)","C":"刪除異常 (Deletion Anomaly)","D":"連線異常 (Connection Anomaly)"},"ans":"ABC"},{"q":"19. 設計資料庫時，從「概念模型」到「邏輯模型」的轉換，包含哪些步驟？","opts":{"A":"將實體轉換為資料表","B":"將屬性轉換為欄位","C":"將關係轉換為外來鍵或關聯表","D":"購買伺服器硬體"},"ans":"ABC"},{"q":"20. 關於 SQL 中的 NULL 值，下列敘述哪些正確？","opts":{"A":"代表數值為 0","B":"代表空字串","C":"代表值未知、不適用或不存在","D":"主鍵欄位通常不允許 NULL"},"ans":"CD"},{"q":"21. 下列哪些情況可能需要進行「反正規化」(Denormalization)？","opts":{"A":"為了提升查詢效能，減少 JOIN 的次數","B":"資料庫主要用於資料倉儲 (Data Warehouse) 或分析","C":"為了節省儲存空間","D":"為了增加資料的一致性"},"ans":"AB"},{"q":"22. 關於 ER Model 中的「基數」(Cardinality) 關係，包含下列哪些？","opts":{"A":"一對一 (1:1)","B":"一對多 (1:N)","C":"多對多 (M:N)","D":"零對零 (0:0)"},"ans":"ABC"},{"q":"23. 若一個資料表的主鍵由「訂單編號」與「產品編號」組成，而其中包含「產品名稱」欄位，這違反了什麼？","opts":{"A":"第一正規化","B":"第二正規化","C":"第三正規化","D":"沒有違反"},"ans":"B"},{"q":"24. 若一個「員工」資料表中包含「部門代號」與「部門名稱」，且主鍵為「員工編號」，這違反了什麼？","opts":{"A":"第一正規化","B":"第二正規化","C":"第三正規化","D":"沒有違反"},"ans":"C"},{"q":"25. 在實體資料庫設計階段，建立「索引」(Index) 的好處與代價為何？","opts":{"A":"加快查詢 (SELECT) 的速度","B":"加快新增 (INSERT) 與修改 (UPDATE) 的速度","C":"會佔用額外的儲存空間","D":"降低查詢速度"},"ans":"AC"},{"q":"26. 關於「候選鍵」(Candidate Key) 的敘述，哪些正確？","opts":{"A":"是一個足以唯一識別紀錄的屬性集合","B":"一個資料表只能有一個候選鍵","C":"主鍵是從候選鍵中挑選出來的","D":"候選鍵不可以包含 NULL 值"},"ans":"ACD"},{"q":"27. 下列哪些是常見的關聯式資料庫管理系統 (RDBMS)？","opts":{"A":"Oracle Database","B":"Microsoft SQL Server","C":"MySQL","D":"Microsoft Excel"},"ans":"ABC"},{"q":"28. 在 ER 圖中，「弱實體」(Weak Entity) 的特徵為何？","opts":{"A":"無法單獨存在，必須依賴強實體","B":"通常沒有自己的主鍵","C":"在 ER 圖中通常用雙框矩形表示","D":"屬性不可以是複合鍵"},"ans":"ABC"},{"q":"29. 關於資料庫的「交易」(Transaction) 特性 ACID，包含下列哪些？","opts":{"A":"原子性 (Atomicity)","B":"一致性 (Consistency)","C":"隔離性 (Isolation)","D":"持久性 (Durability)"},"ans":"ABCD"},{"q":"30. 下列哪些是違反「第一正規化」(1NF) 的具體例子？","opts":{"A":"通訊錄欄位中填寫了兩支電話號碼","B":"訂單明細直接塞在訂單主表的某個欄位中","C":"同一筆紀錄中有「子女1」、「子女2」、「子女3」等多個相似欄位","D":"沒有設定主鍵"},"ans":"ABCD"}]},"ch11_10":{"label":"CH11 課後十題","items":[{"q":"1. 基本維護流程為何？\n(1)維護單位進行維護需求單之審查 (2)使用者提出維護需求 (3)維護人員擬定維護工作時程 (4)交付修改後版本 (5)將維護工作交由維護人員進行","opts":{"A":"2、5、1、3、4","B":"2、1、5、3、4","C":"2、3、1、5、4","D":"2、3、5、1、4"},"ans":"B"},{"q":"2. 撰寫程式需要注意的風格和要點，何者錯誤？","opts":{"A":"必須有變數的命名標準","B":"避免使用整體變數","C":"限制參數個數和參數型態","D":"物件導向繼承的使用也不要超過一層"},"ans":"D"},{"q":"3. 在程式中加上註解也是很重要的工作，註解有以下要點需注意，何者錯誤？","opts":{"A":"每一個類別和方法要有簡短說明","B":"要說明參數所代表的意義和使用方式","C":"第一次使用變數要說明","D":"每一行程式需註解，以利其他人瞭解程式邏輯"},"ans":"D"},{"q":"4. 根據下列要點可以幫助程式設計人員寫出具有防禦力的程式，何者錯誤？","opts":{"A":"強制規範，排除不必要輸入","B":"使用例外處理","C":"結束程式","D":"記錄例外"},"ans":"C"},{"q":"5. 測試計畫項目，以下何者不包含？","opts":{"A":"使⽤者⽂件","B":"硬體設施","C":"整合","D":"追蹤程序"},"ans":"A"},{"q":"6. 整合測試在單元測試完成後，將幾個方法類別或元件組合在一起測試，此時錯誤不可能來自於？","opts":{"A":"介面","B":"參數值","C":"其他","D":"以上皆有可能"},"ans":"D"},{"q":"7. 黑箱測試中有幾個常用的方法，以下何者為非？","opts":{"A":"等價分割法","B":"邊界值分析","C":"物件導向法","D":"因果關係圖"},"ans":"C"},{"q":"8. 系統測試大致上有以下幾類，何者錯誤？","opts":{"A":"使用性測試","B":"可靠性測試","C":"績效測試","D":"介面測試"},"ans":"D"},{"q":"9. 上線方式，以下何者為非？","opts":{"A":"直接上線","B":"平行上線","C":"導航上線","D":"物件式上線"},"ans":"D"},{"q":"10. 環境建置，以下何者為非？","opts":{"A":"硬體系統及環境的建置","B":"資料庫的建置與轉換","C":"上線前的系統測試","D":"使用者文件撰寫"},"ans":"A"}]},"ch11_20":{"label":"CH11 課後20題","items":[{"q":"1. 關於軟體測試中的「驗證」(Verification) 與「確認」(Validation)，下列敘述哪些正確？","opts":{"A":"驗證 (Verification) 強調「我們是否正確地打造了產品？」(Are we building the product right?)","B":"確認 (Validation) 強調「我們是否打造了正確的產品？」(Are we building the right product?)","C":"驗證主要檢查軟體是否符合規格書與設計文件","D":"確認主要檢查軟體是否滿足使用者的真正需求"},"ans":"ABCD"},{"q":"2. 關於「排演」(Walkthrough) 的特徵，下列哪些描述是正確的？","opts":{"A":"通常由程式碼的作者 (Author) 主導","B":"是一種較為非正式的審查會議","C":"主要目的是向同事展示與解釋程式邏輯，並收集回饋","D":"必須要有嚴格的檢查表 (Checklist) 與獨立的主席"},"ans":"ABC"},{"q":"3. 關於「審視」(Inspection) 的特徵，下列哪些描述是正確的？","opts":{"A":"是一種正式的 (Formal) 技術審查","B":"通常需要一位受過訓練的主席 (Moderator) 來引導","C":"主要依賴檢查表 (Checklist) 來尋找缺陷","D":"作者不能擔任主席，以確保客觀性"},"ans":"ABCD"},{"q":"4. 關於「黑箱測試」(Black-box Testing)，下列哪些敘述正確？","opts":{"A":"測試人員不需要了解內部的程式碼邏輯","B":"主要關注輸入與輸出之間的正確性","C":"又稱為功能性測試 (Functional Testing)","D":"需要計算程式碼的複雜度"},"ans":"ABC"},{"q":"5. 下列哪些測試技術屬於「黑箱測試」的範疇？","opts":{"A":"邊界值分析 (Boundary Value Analysis)","B":"等價分割法 (Equivalence Partitioning)","C":"路徑測試 (Path Testing)","D":"狀態轉換測試 (State Transition Testing)"},"ans":"ABD"},{"q":"6. 關於「白箱測試」(White-box Testing)，下列哪些敘述正確？","opts":{"A":"測試人員必須了解程式內部的邏輯結構","B":"又稱為結構測試 (Structural Testing)","C":"目的是確保程式內部的路徑、迴圈與條件皆被正確執行","D":"主要依賴使用者介面 (GUI) 進行測試"},"ans":"ABC"},{"q":"7. 關於「敘述覆蓋法」(Statement Coverage)，下列哪些正確？","opts":{"A":"屬於白箱測試的一種指標","B":"目標是讓程式中每一行敘述至少被執行一次","C":"滿足敘述覆蓋就一定能發現所有的邏輯錯誤","D":"是最基本的覆蓋率指標"},"ans":"ABD"},{"q":"8. 關於「決策覆蓋法」(Decision Coverage) 或稱分支覆蓋 (Branch Coverage)，哪些正確？","opts":{"A":"要求程式中的每個判斷節點 (Decision) 的 True 與 False 路徑至少各執行一次","B":"比敘述覆蓋法 (Statement Coverage) 更嚴謹","C":"必定包含了敘述覆蓋 (Statement Coverage)","D":"需要測試所有條件內部的子運算式組合"},"ans":"ABC"},{"q":"9. 關於「條件覆蓋法」(Condition Coverage)，下列哪些正確？","opts":{"A":"針對判斷式中的每個「原子條件」(Atomic Condition) 進行測試","B":"每個子條件必須至少出現一次 True 與一次 False","C":"比單純的決策覆蓋更細緻","D":"可以找出複合條件中單一條件錯誤的問題"},"ans":"ABCD"},{"q":"10. 關於「KISS 規則」(Keep It Simple, Stupid)，在軟體工程中的意涵為何？","opts":{"A":"設計與程式碼應盡量保持簡單直觀","B":"避免不必要的複雜度","C":"簡單的系統通常比複雜的系統更容易維護與除錯","D":"程式碼越短越好，即使犧牲可讀性也沒關係"},"ans":"ABC"},{"q":"11. 關於「非執行性測試」(Non-execution Testing)，下列哪些屬於此類？","opts":{"A":"程式碼審視 (Code Inspection)","B":"需求文件走查 (Walkthrough)","C":"靜態分析 (Static Analysis)","D":"單元測試 (Unit Testing)"},"ans":"ABC"},{"q":"12. 關於「執行性測試」(Execution Testing)，下列哪些屬於此類？","opts":{"A":"整合測試 (Integration Testing)","B":"系統測試 (System Testing)","C":"驗收測試 (Acceptance Testing)","D":"同儕審查 (Peer Review)"},"ans":"ABC"},{"q":"13. 軟體維護工作通常包含哪幾種類型？","opts":{"A":"更正性維護 (Corrective)","B":"適應性維護 (Adaptive)","C":"完善性維護 (Perfective)","D":"預防性維護 (Preventive)"},"ans":"ABCD"},{"q":"14. 關於「更正性維護」(Corrective Maintenance)，下列敘述哪些正確？","opts":{"A":"是在軟體交付後進行的","B":"目的是修復系統中發現的錯誤 (Bugs)","C":"通常是由使用者的抱怨或錯誤報告所觸發","D":"是為了增加新功能"},"ans":"ABC"},{"q":"15. 關於「適應性維護」(Adaptive Maintenance)，下列哪些情境屬於此類？","opts":{"A":"作業系統升級，導致軟體需配合修改","B":"資料庫系統更換版本，需調整連線程式","C":"政府法規變更，需調整報稅邏輯","D":"使用者覺得介面不好看，想要換顏色"},"ans":"ABC"},{"q":"16. 關於「完善性維護」(Perfective Maintenance)，下列哪些敘述正確？","opts":{"A":"佔據了維護工作最大的比例 (通常超過 50%)","B":"包含增加新功能或提升系統效能","C":"包含改善使用者介面 (UI)","D":"只是為了解決程式當機的問題"},"ans":"ABC"},{"q":"17. 關於「預防性維護」(Preventive Maintenance)，下列哪些是適當的例子？","opts":{"A":"程式碼重構 (Refactoring) 以提升可讀性","B":"更新文件以免未來人員看不懂","C":"在系統崩潰前預先升級伺服器容量","D":"修復已經發生的錯誤"},"ans":"ABC"},{"q":"18. 關於軟體維護的看法，下列哪些是軟體工程界的共識？","opts":{"A":"維護階段的成本通常高於開發階段","B":"維護不只是修修補補，還包含功能的演進","C":"好的設計與文件可以降低維護成本","D":"軟體開發完畢後，維護工作很快就會結束"},"ans":"ABC"},{"q":"19. 在白箱測試中，若要計算「循環複雜度」(Cyclomatic Complexity)，通常與下列哪些因素有關？","opts":{"A":"程式碼中的判斷節點數量 (Predicates)","B":"程式流程圖中的區域數量 (Regions)","C":"變數的命名長度","D":"程式碼的行數"},"ans":"AB"},{"q":"20. 為什麼「單元測試」(Unit Testing) 經常被歸類為白箱測試？","opts":{"A":"因為測試者通常是開發者本人","B":"因為需要針對程式碼內部的函式或方法進行測試","C":"因為不需要執行程式","D":"因為主要依賴程式碼的內部結構來設計測試案例"},"ans":"ABD"}]}};
+
+const LETTERS = ["A","B","C","D"];
+
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Build shuffled question set for a chapter
+function buildSet(chapterKey) {
+  const ch = DATA[chapterKey];
+  const items = shuffleArray(ch.items).map(item => {
+    const keys = Object.keys(item.opts);
+    const order = shuffleArray(keys);
+    const opts = {};
+    let ans = "";
+    order.forEach((origKey, idx) => {
+      const newLetter = LETTERS[idx];
+      opts[newLetter] = item.opts[origKey];
+      if (item.ans.includes(origKey)) ans += newLetter;
+    });
+    ans = ans.split("").sort().join("");
+    return { q: item.q, opts, ans, isMulti: ans.length > 1 };
+  });
+  return items;
+}
+
+// State
+let state = {
+  chapterKey: null,
+  questions: [],
+  index: 0,
+  selected: new Set(),
+  answered: false,
+  results: [] // {correct: bool, q, userAns, correctAns}
+};
+
+const screenSelect = document.getElementById('screen-select');
+const screenQuiz = document.getElementById('screen-quiz');
+const screenResult = document.getElementById('screen-result');
+
+function renderChapterGrid() {
+  const grid = document.getElementById('chapter-grid');
+  grid.innerHTML = '';
+  Object.entries(DATA).forEach(([key, ch]) => {
+    const card = document.createElement('div');
+    card.className = 'chapter-card';
+    card.innerHTML = `
+      <div class="ch-title">${ch.label}</div>
+      <div class="ch-count">${ch.items.length} 題</div>
+    `;
+    card.addEventListener('click', () => startChapter(key));
+    grid.appendChild(card);
+  });
+}
+
+function startChapter(key) {
+  state.chapterKey = key;
+  state.questions = buildSet(key);
+  state.index = 0;
+  state.results = [];
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function showScreen(name) {
+  screenSelect.classList.toggle('hidden', name !== 'select');
+  screenQuiz.classList.toggle('hidden', name !== 'quiz');
+  screenResult.classList.toggle('hidden', name !== 'result');
+}
+
+function renderQuestion() {
+  state.selected = new Set();
+  state.answered = false;
+
+  const total = state.questions.length;
+  const q = state.questions[state.index];
+
+  document.getElementById('progress-text').textContent = `第 ${state.index + 1} / ${total} 題`;
+  document.getElementById('progress-fill').style.width = `${(state.index / total) * 100}%`;
+
+  document.getElementById('q-label').textContent = DATA[state.chapterKey].label;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('q-hint').textContent = q.isMulti
+    ? `多選題（共 ${q.ans.length} 個正確答案）`
+    : '單選題';
+
+  const optionsDiv = document.getElementById('options');
+  optionsDiv.innerHTML = '';
+  const displayOrder = shuffleArray(LETTERS.filter(l => q.opts[l]));
+  displayOrder.forEach(letter => {
+    const opt = document.createElement('div');
+    opt.className = 'option';
+    opt.dataset.letter = letter;
+    opt.innerHTML = `<div class="letter">${letter}</div><div class="text">${q.opts[letter]}</div>`;
+    opt.addEventListener('click', () => toggleOption(letter, q.isMulti));
+    optionsDiv.appendChild(opt);
+  });
+
+  document.getElementById('feedback').classList.add('hidden');
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('btn-submit').classList.remove('hidden');
+  document.getElementById('btn-submit').disabled = true;
+  document.getElementById('btn-next').classList.add('hidden');
+  document.getElementById('btn-skip').classList.remove('hidden');
+}
+
+function toggleOption(letter, isMulti) {
+  if (state.answered) return;
+  if (isMulti) {
+    if (state.selected.has(letter)) state.selected.delete(letter);
+    else state.selected.add(letter);
+  } else {
+    state.selected = new Set([letter]);
+  }
+  // update visuals
+  document.querySelectorAll('.option').forEach(el => {
+    el.classList.toggle('selected', state.selected.has(el.dataset.letter));
+  });
+  document.getElementById('btn-submit').disabled = state.selected.size === 0;
+}
+
+function submitAnswer() {
+  if (state.selected.size === 0 || state.answered) return;
+  state.answered = true;
+  const q = state.questions[state.index];
+  const userAns = [...state.selected].sort().join("");
+  const isCorrect = userAns === q.ans;
+
+  document.querySelectorAll('.option').forEach(el => {
+    const letter = el.dataset.letter;
+    el.classList.add('disabled');
+    const isCorrectOpt = q.ans.includes(letter);
+    const isSelected = state.selected.has(letter);
+    if (isCorrectOpt) el.classList.add('correct');
+    else if (isSelected) el.classList.add('incorrect');
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.classList.remove('hidden');
+  if (isCorrect) {
+    fb.className = 'feedback correct';
+    fb.textContent = `✔ 正確！答案是 ${q.ans}`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `✘ 答錯了。正確答案是 ${q.ans}，你選了 ${userAns || '（無）'}`;
+  }
+
+  state.results.push({
+    correct: isCorrect,
+    q: q.q.split("\n")[0],
+    userAns: userAns || '未答',
+    correctAns: q.ans
+  });
+
+  document.getElementById('btn-submit').classList.add('hidden');
+  document.getElementById('btn-skip').classList.add('hidden');
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.classList.remove('hidden');
+  nextBtn.textContent = (state.index === state.questions.length - 1) ? '查看結果 →' : '下一題 →';
+}
+
+function skipQuestion() {
+  if (state.answered) return;
+  const q = state.questions[state.index];
+  state.results.push({
+    correct: false,
+    q: q.q.split("\n")[0],
+    userAns: '跳過',
+    correctAns: q.ans
+  });
+  goNext();
+}
+
+function goNext() {
+  if (state.index < state.questions.length - 1) {
+    state.index++;
+    renderQuestion();
+  } else {
+    document.getElementById('progress-fill').style.width = '100%';
+    showResult();
+  }
+}
+
+function showResult() {
+  showScreen('result');
+  const correctCount = state.results.filter(r => r.correct).length;
+  const total = state.results.length;
+  const pct = Math.round((correctCount / total) * 100);
+
+  document.getElementById('result-score').textContent = `${correctCount} / ${total}`;
+  document.getElementById('result-sub').textContent = `${DATA[state.chapterKey].label} — 正確率 ${pct}%`;
+
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  state.results.forEach((r, i) => {
+    const item = document.createElement('div');
+    item.className = 'review-item';
+    item.innerHTML = `
+      <div class="rq">${i + 1}. ${r.q}</div>
+      <div class="rmark ${r.correct ? 'ok' : 'bad'}">${r.correct ? '✔ ' + r.correctAns : '✘ ' + r.userAns + ' (正解 ' + r.correctAns + ')'}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// Event bindings
+document.getElementById('btn-submit').addEventListener('click', submitAnswer);
+document.getElementById('btn-skip').addEventListener('click', skipQuestion);
+document.getElementById('btn-next').addEventListener('click', goNext);
+document.getElementById('btn-back').addEventListener('click', () => showScreen('select'));
+document.getElementById('btn-home').addEventListener('click', () => showScreen('select'));
+document.getElementById('btn-retry').addEventListener('click', () => startChapter(state.chapterKey));
+
+renderChapterGrid();
+</script>
+</body>
+</html>
